@@ -36,7 +36,7 @@ public class Gameplay {
     }
 
     // Creates deck and shuffles cards. Deals two cards each to player and dealer.
-    public void dealInitialCards() throws Exception {
+    public void dealInitialCards() {
         deckOfCards.makeDeck();
         deckOfCards.shuffleDeck();
         for (int i = 0; i < 2; i++) {
@@ -51,14 +51,14 @@ public class Gameplay {
     }
 
     // Method displays player's cards. Uses timer to slow card presentation.
-    public void showPlayersCards() throws Exception {
+    public void showPlayersCards() {
         player.adjustForAces();
         System.out.println("\nYOUR CARDS:");
         if (playerHandString.length() != 0) {
             System.out.println(playerHandString);
         }
         for (Card hand : player.getHand()) {
-            Thread.sleep(700);
+            delay(700);
             if (playerHandString.length() == 0) {
                 System.out.println(hand);
                 playerHandString.append(hand);
@@ -67,12 +67,12 @@ public class Gameplay {
                 playerHandString.append("\n").append(hand);
             }
         }
-        Thread.sleep(700);
+        delay(700);
         appendPlayerHand();
     }
 
     // Adds new card to player's hand.
-    public void hitMe() throws Exception {
+    public void hitMe() {
         player.clearHand();
         Card newCard = deckOfCards.getCard();
         player.addCard(newCard);
@@ -81,7 +81,7 @@ public class Gameplay {
     }
 
     // Checks if player's initial cards constitute blackjack.
-    public boolean checkBlackjack() throws Exception {
+    public boolean checkBlackjack() {
         if (player.getHandValue() == 21) {
             playerBalance += (int) (playerWager * 1.5);
             System.out.println("BLACKJACK! YOU WIN $" + ((int) (playerWager * 1.5)) + "!\n");
@@ -126,49 +126,49 @@ public class Gameplay {
     }
 
     // Method display dealer's face-up card. Uses timer to slow card presentation.
-    public void showDealersUpCard() throws Exception {
+    public void showDealersUpCard() {
         System.out.println("DEALER'S CARDS:");
         for (Card hand : dealer.getHand()) {
-            Thread.sleep(700);
+            delay(700);
             System.out.println(hand);
-            Thread.sleep(700);
+            delay(700);
             System.out.println("(X) of XXXXXX");
-            Thread.sleep(700);
+            delay(700);
             System.out.println("Card value: " + hand.getRank().getValue());
-            Thread.sleep(700);
+            delay(700);
             break;
         }
         System.out.println();
     }
 
     // Method that begins dealer's final act of revealing cards.
-    public void dealerReveals() throws Exception {
+    public void dealerReveals() {
             dealer.adjustForAces();
             System.out.println("\nDEALER'S HAND:");
             for (Card card : dealer.getHand()) {
-                Thread.sleep(700);
+                delay(700);
                 System.out.println(card);
             }
-            Thread.sleep(700);
+            delay(700);
             System.out.println("Hand value: " + dealer.getHandValue() + "\n");
-            Thread.sleep(700);
+            delay(700);
             if (!dealerHitsOrBusts() && !player.hasSplit())
                 determineWinner();
     }
 
     // Instructs dealer to draw cards until 17 is reached or dealer busts.
     // Returns TRUE if dealer busts.
-    public boolean dealerHitsOrBusts() throws Exception {
+    public boolean dealerHitsOrBusts() {
         while (dealer.getHandValue() < 17) {
             Card newCard = deckOfCards.getCard();
             dealer.addCard(newCard);
             dealer.adjustForAces();
             System.out.println("DEALER'S NEW CARD:");
-            Thread.sleep(700);
+            delay(700);
             System.out.println(newCard);
-            Thread.sleep(700);
+            delay(700);
             System.out.println("Hand value: " + dealer.getHandValue() + "\n");
-            Thread.sleep(700);
+            delay(700);
             if (checkIfBusted(2)) {
                 dealer.clearHandValue();
                 return true;
@@ -178,19 +178,19 @@ public class Gameplay {
     }
 
     // Checks if dealer's initial cards constitute blackjack. Ends game if true.
-    public boolean dealerPeek() throws Exception {
+    public boolean dealerPeek() {
         if (dealer.getHand().get(0).getRank() == Rank.ACE ||
                 dealer.getHand().get(0).getRank().getValue() == 10) {
             printPeekMessage();
             if (dealer.getHandValue() == 21) {
                 System.out.println("DEALER'S HAND:");
                 for (Card card : dealer.getHand()) {
-                    Thread.sleep(500);
+                    delay(500);
                     System.out.println(card);
                 }
-                Thread.sleep(500);
+                delay(500);
                 System.out.println("Hand value: " + dealer.getHandValue() + "\n");
-                Thread.sleep(500);
+                delay(500);
                 System.out.println("Sorry! Dealer has blackjack! Try again!\n");
                 playerBalance -= playerWager;
                 resetGame();
@@ -203,23 +203,23 @@ public class Gameplay {
     }
 
     // If neither player nor dealer busts, this method evaluates winner based on value of hands.
-    public void determineWinner() throws Exception {
+    public void determineWinner() {
         if (player.getHandValue() > dealer.getHandValue()) {
             System.out.printf("\nYour %d beats dealer's %d\nYOU WIN $%d! PLAY AGAIN?\n\n",
                     player.getHandValue(), dealer.getHandValue(), playerWager);
             playerBalance += playerWager;
-            Thread.sleep(1000);
+            delay(1000);
             resetGame();
         } else if (dealer.getHandValue() > player.getHandValue()) {
             System.out.printf("\nDealer's %d beats your %d\nYOU LOSE $%d! PLAY AGAIN?\n\n",
                     dealer.getHandValue(), player.getHandValue(), playerWager);
-            Thread.sleep(1000);
+            delay(1000);
             playerBalance -= playerWager;
             resetGame();
         } else {
             System.out.printf("\nDealer's %d equals your %d\nIT'S A PUSH! PLAY AGAIN?\n\n",
                     dealer.getHandValue(), player.getHandValue());
-            Thread.sleep(1000);
+            delay(1000);
             playerWager = 0;
             resetGame();
         }
@@ -227,7 +227,7 @@ public class Gameplay {
 
     // Following methods handle logic of splitting cards into two separate hands and bets.
     // splitHand returns 21 to UI if player achieves blackjack after hand is completed.
-    public int splitHand(int hand) throws Exception {
+    public int splitHand(int hand) {
         if (hand == 1) {
             player.playerSplits();
             doubleWager();
@@ -256,25 +256,25 @@ public class Gameplay {
                 evaluateSplit(split, "TWO");
             }
             resetGame();
-            Thread.sleep(500);
+            delay(500);
         }
         return -1;
     }
 
     // Prints cards of each split hand. Returns 21 if blackjack is achieved.
-    public int handleSplit(Player hand, String count) throws Exception {
+    public int handleSplit(Player hand, String count)  {
         hand.clearHandValue();
-        Thread.sleep(500);
+        delay(500);
         if (count.equals("ONE")) {
             System.out.println();
         }
         System.out.println("HAND " + count + ":");
         for (Card card : hand.getHand()) {
-            Thread.sleep(500);
+            delay(500);
             hand.addHandValue(card.getRank().getValue());
             System.out.println(card);
         }
-        Thread.sleep(500);
+        delay(500);
         System.out.println("Hand value: " + hand.getHandValue() + "\n");
         if (hand.getHandValue() == 21) {
             System.out.printf("BLACKJACK! You win $%d! \n\n", (int) ((playerWager / 2) * 1.5));
@@ -287,19 +287,19 @@ public class Gameplay {
     // Separate helper method for hitting on split hands.
     // Takes the hand number as a parameter (1 for first hand, 2 for second hand)
     // Declares subtractBust variable that subtracts value of player's original bet if hand busts.
-    public int hitOnSplit(int hand) throws Exception {
+    public int hitOnSplit(int hand) {
         int subtractBust = (playerWager / 2);
         if (hand == 1) {
             Card newCard = deckOfCards.getCard();
             player.addCard(newCard);
             player.adjustForAces();
-            Thread.sleep(300);
+            delay(300);
             System.out.println("NEW CARD:");
-            Thread.sleep(700);
+            delay(700);
             System.out.println(newCard);
-            Thread.sleep(700);
+            delay(700);
             System.out.println("New hand value: " + player.getHandValue() + "\n");
-            Thread.sleep(700);
+            delay(700);
             if (player.getHandValue() > 21) {
                 System.out.println("BUST! This hand went over 21.\n");
                 updatedWager = updatedWager - subtractBust;
@@ -312,13 +312,13 @@ public class Gameplay {
             Card newCard = deckOfCards.getCard();
             split.addCard(newCard);
             split.adjustForAces();
-            Thread.sleep(300);
+            delay(300);
             System.out.println("NEW CARD:");
-            Thread.sleep(700);
+            delay(700);
             System.out.println(newCard);
-            Thread.sleep(700);
+            delay(700);
             System.out.println("New hand value: " + split.getHandValue() + "\n");
-            Thread.sleep(700);
+            delay(700);
             if (split.getHandValue() > 21) {
                 System.out.println("BUST! This hand went over 21.");
                 updatedWager = updatedWager - subtractBust;
@@ -331,8 +331,8 @@ public class Gameplay {
     }
 
     // Outcome of split hands are determined here.
-    public void evaluateSplit(Player hand, String handCount) throws Exception {
-        Thread.sleep(200);
+    public void evaluateSplit(Player hand, String handCount)  {
+        delay(200);
         if (dealerHitsOrBusts()) {
             return;
         }
@@ -359,7 +359,7 @@ public class Gameplay {
         if (handCount.equals("TWO")) {
             System.out.println();
         }
-        Thread.sleep(400);
+        delay(400);
     }
 
     // Method to reset game after each hand is completed.
@@ -382,38 +382,46 @@ public class Gameplay {
         }
     }
 
-    public void printChecking() throws Exception {
+    public void printChecking() {
         String checking = "Checking";
         for (int i = 0; i < checking.length(); i++) {
             System.out.print(checking.charAt(i));
-            Thread.sleep(100);
+            delay(100);
         }
     }
 
-    public void printDealing() throws Exception {
+    public void printDealing() {
         String checking = "Dealing";
         for (int i = 0; i < checking.length(); i++) {
             System.out.print(checking.charAt(i));
-            Thread.sleep(100);
+            delay(100);
         }
     }
 
-    public void printLoading() throws Exception {
+    public void printLoading() {
         for (int i = 0; i < 3; i++) {
             System.out.print(".");
-            Thread.sleep(300);
+            delay(100);
         }
     }
 
-    public void printPeekMessage() throws Exception {
-        Thread.sleep(500);
+    public void printPeekMessage() {
+        delay(500);
         System.out.println("Dealer hand is showing an ace or ten-card.");
-        Thread.sleep(500);
+        delay(500);
         System.out.println("Dealer must peek at hidden card to check blackjack.");
-        Thread.sleep(500);
+        delay(500);
         printChecking();
         printLoading();
         System.out.println("\n");
+    }
+
+    public static void delay(int milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (Exception e) {
+            System.out.println("Error: " + e);
+        }
     }
 
 }
