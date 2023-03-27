@@ -1,12 +1,12 @@
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Hand {
+public abstract class Participant {
     protected List<Card> hand;
     protected int handValue, numberOfAces, hitIteration;
     protected boolean isBusted;
 
-    public Hand() {
+    public Participant() {
         this.hand = new ArrayList<>();
         this.handValue = 0;
         this.isBusted = false;

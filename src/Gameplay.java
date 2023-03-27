@@ -83,7 +83,7 @@ public class Gameplay {
 
     /* Checks if player or dealer has busted.
     Parameter checks whether hand belong to player or dealer. */
-    public boolean checkIfBusted(Hand hand) {
+    public boolean checkIfBusted(Participant hand) {
         if (hand instanceof Player) {
             if (player.getHandValue() > 21) {
                 if (player.hasDoubledDown()) {

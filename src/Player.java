@@ -1,4 +1,4 @@
-public class Player extends Hand {
+public class Player extends Participant {
 
     private int balance, wager, splitWager;
     private boolean eligibleToDoubleDown, hasSplit, hasDoubledDown;

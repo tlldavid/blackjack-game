@@ -1,4 +1,4 @@
-public class Dealer extends Hand {
+public class Dealer extends Participant {
 
     public Dealer() {
         super();
