@@ -71,14 +71,10 @@ public class Player extends Participant {
 
     @Override
     public void resetAll() {
-        this.hand.clear();
-        this.handValue = 0;
-        this.numberOfAces = 0;
-        this.hitIteration = 0;
+        super.resetAll();
         this.hasDoubledDown = false;
         this.hasSplit = false;
         this.eligibleToDoubleDown = true;
-        this.isBusted = false;
         this.wager = 0;
         this.splitWager = 0;
     }
