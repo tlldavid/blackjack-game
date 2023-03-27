@@ -14,14 +14,14 @@ public class Gameplay {
         this.dealer = dealer;
         this.split = split;
         this.deckOfCards = new Deck();
+        deckOfCards.makeDeck();
+        deckOfCards.shuffleDeck();
         this.playerHandString = new StringBuilder();
     }
 
 
-    // Creates deck and shuffles cards. Deals two cards each to player and dealer.
+    // Deals two cards each to player and dealer.
     public void dealInitialCards() {
-        deckOfCards.makeDeck();
-        deckOfCards.shuffleDeck();
         for (int i = 0; i < 2; i++) {
             Card playerCard = deckOfCards.getCard();
             player.addCard(playerCard);
@@ -77,7 +77,7 @@ public class Gameplay {
             resetGame();
             return true;
         }
-        showDealersUpCard();
+        dealer.showUpCard();
         return false;
     }
 
@@ -112,22 +112,6 @@ public class Gameplay {
             }
         }
         return false;
-    }
-
-    // Method display dealer's face-up card. Uses timer to slow card presentation.
-    public void showDealersUpCard() {
-        System.out.println("DEALER'S CARDS:");
-        for (Card hand : dealer.getHand()) {
-            delay(700);
-            System.out.println(hand);
-            delay(700);
-            System.out.println("(X) of XXXXXX");
-            delay(700);
-            System.out.println("Card value: " + hand.getRank().getValue());
-            delay(700);
-            break;
-        }
-        System.out.println();
     }
 
     /* Method that reveals dealer's cards. dealerHitsOrBusts() is
@@ -214,7 +198,7 @@ public class Gameplay {
         }
     }
 
-    // Following methods handle logic of splitting cards into two separate hands and bets.
+    // Next few methods handle logic of splitting cards into two separate hands and bets.
     // splitHand returns 21 to UI if player achieves blackjack after each hand is completed.
     public int splitHand(int handNumber) {
         if (handNumber == 1) {
@@ -338,8 +322,13 @@ public class Gameplay {
         player.resetAll();
         dealer.resetAll();
         split.resetAll();
-        deckOfCards.clearDeck();
         playerHandString.setLength(0);
+        if (deckOfCards.cardsLeft() < 13) {
+            deckOfCards.clearDeck();
+            deckOfCards.makeDeck();
+            deckOfCards.shuffleDeck();
+            System.out.println("NEW DECK SHUFFLED.\n");
+        }
     }
 
     // Separating some formatting logic.
