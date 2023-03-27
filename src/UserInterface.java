@@ -3,17 +3,23 @@ import java.util.Scanner;
 public class UserInterface {
     private final Scanner scanner;
     private final Gameplay gameplay;
-    private boolean eligibleToDoubleDown;
+    private final Player player;
+    private final Player split;
 
     public UserInterface() {
         this.scanner = new Scanner(System.in);
-        this.gameplay = new Gameplay();
+        this.player = new Player();
+        this.split = new Player();
+        Dealer dealer = new Dealer();
+        this.gameplay = new Gameplay(player, dealer, split);
     }
 
+    /* Start method displays initial menu, takes user input on whether
+    to deal or exit game. If player chooses to deal, a bet is placed and a
+    sequence of Gameplay methods are subsequently called. */
     public void startGame() {
         while (true) {
             try {
-                eligibleToDoubleDown = true;
                 System.out.println(appendHeader());
                 String input = scanner.nextLine();
                 if (input.equalsIgnoreCase("exit")) {
@@ -34,7 +40,7 @@ public class UserInterface {
         }
     }
 
-    // Takes bet as user input. Passes value to setWager() method in Gameplay class.
+    // Takes bet as user input. Passes value to setWager() method in Player class.
     public void placeBet() {
         while (true) {
             System.out.println("Place your bet:");
@@ -42,11 +48,11 @@ public class UserInterface {
                 int playerBet = Integer.parseInt(scanner.nextLine());
                 if (playerBet == 0) {
                     startGame();
-                } else if (playerBet > gameplay.getBalance()) {
+                } else if (playerBet > player.getBalance()) {
                     System.out.println("This bet exceeds your bankroll. " +
                             "Bet lower or enter 0.");
                 } else {
-                    gameplay.setWager(playerBet);
+                    player.setWager(playerBet);
                     break;
                 }
             } catch (Exception e) {
@@ -55,41 +61,41 @@ public class UserInterface {
         }
     }
 
-    // Method takes user input whether to hit, stay, double down, or split.
-    // Returns TRUE if new card busts hand.
+    /* After cards are revealed, this method takes user input on whether to
+     hit, stay, double down, or split. Returns TRUE if new card busts hand. */
     public boolean playerOptions() throws Exception {
         while (true) {
             System.out.println(appendOptions());
             String input = scanner.nextLine();
             if (input.equalsIgnoreCase("Hit")) {
                 gameplay.hitMe();
-                eligibleToDoubleDown = false;
-                if (gameplay.checkIfBusted(1)) {
+                player.notEligibleToDoubleDown();
+                if (gameplay.checkIfBusted(this.player)) {
                     return true;
                 }
             }
-            if (eligibleToDoubleDown) {
+            if (player.isEligibleToDoubleDown()) {
                 if (input.equalsIgnoreCase("Double")) {
-                    if (gameplay.getBalance() < (gameplay.getWager() * 2)) {
+                    if (player.getBalance() < (player.getWager() * 2)) {
                         printNotEnough();
                         continue;
                     }
                     printDoubleInfo();
-                    gameplay.doubleWager();
+                    player.doubleWager();
                     gameplay.hitMe();
-                    return gameplay.checkIfBusted(1);
+                    return gameplay.checkIfBusted(this.player);
                 }
                 if (input.equalsIgnoreCase("Split")) {
-                    if (gameplay.getBalance() < (gameplay.getWager() * 2)) {
+                    if (player.getBalance() < (player.getWager() * 2)) {
                         printNotEnough();
                         continue;
                     }
                     printSplitInfo();
                     if (gameplay.splitHand(1) != 21) {
-                        splitSubMenu(1);
+                        splitSubMenu(player);
                     }
                     if (gameplay.splitHand(2) != 21){
-                        splitSubMenu(2);
+                        splitSubMenu(split);
                     }
                     gameplay.splitHand(3);
                     return true;
@@ -101,7 +107,7 @@ public class UserInterface {
         }
     }
 
-    public void splitSubMenu(int hand) throws Exception {
+    public void splitSubMenu(Player hand)  {
         while (true) {
             System.out.println(appendSplit());
             String input = scanner.nextLine();
@@ -117,7 +123,7 @@ public class UserInterface {
     }
     public String appendHeader() {
         StringBuilder header = new StringBuilder();
-        String line1 = "---21 BLACKJACK---\n  Balance: $" + gameplay.getBalance();
+        String line1 = "---21 BLACKJACK---\n  Balance: $" + player.getBalance();
         String line2 = "\n\n1. Type DEAL to play.\n2. Type EXIT to quit.";
         header.append(line1).append(line2);
         return header.toString();
@@ -129,18 +135,16 @@ public class UserInterface {
         String line3 = "Type STAY to stick with your hand.\n";
         String line4 = "Type SPLIT to split your cards.\n";
         options.append(line2).append(line3);
-        if (eligibleToDoubleDown) {
+        if (player.isEligibleToDoubleDown()) {
             options.append(line1);
             options.append(line4);
         }
         return options.toString();
     }
     public String appendSplit() {
-        StringBuilder options = new StringBuilder();
         String line1 = "Type HIT to draw another card.\n";
         String line2 = "Type STAY to stick with your hand.\n";
-        options.append(line1).append(line2);
-        return options.toString();
+        return line1 + line2;
     }
     public void printSplitInfo() throws Exception {
         System.out.println("\nYour cards will be split into two separate hands.");

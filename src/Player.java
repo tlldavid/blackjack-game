@@ -1,68 +1,64 @@
-import java.util.ArrayList;
-import java.util.List;
+public class Player extends Hand {
 
-public class Player {
-
-    private final List<Card> playerHand;
-    private int handValue, numberOfAces, hitIteration;
-    private boolean hasDoubledDown, hasSplit;
+    private int balance, wager, splitWager;
+    private boolean eligibleToDoubleDown, hasSplit, hasDoubledDown;
 
     public Player() {
-        this.playerHand = new ArrayList<>();
+        super();
+        this.balance = 500;
+        this.eligibleToDoubleDown = true;
+        this.hasSplit = false;
         this.hasDoubledDown = false;
     }
 
-    public void addCard(Card card) {
-        this.playerHand.add(card);
-        this.handValue += card.getRank().getValue();
-        this.checkForAce(card);
+    public void addBalance(int value) {
+        this.balance += value;
     }
 
-    // Counts aces in each hand so that soft hits could be calculated.
-    public void checkForAce(Card card) {
-        if (card.getRank() == Rank.ACE)
-            numberOfAces++;
+    public void minusBalance(int value) {
+        this.balance -= value;
     }
-
-    // Adjusts value of aces to allow soft hits.
-    public void adjustForAces() {
-        if (this.handValue > 21 && this.numberOfAces > 0)
-            while (this.handValue > 21 && this.numberOfAces > 0) {
-                this.handValue -= 10;
-                this.numberOfAces -= 1;
-            }
+    public int getBalance() {
+        return this.balance;
     }
-
-    public int getHandValue() {
-        return this.handValue;
+    public void setWager(int wager) {
+        this.wager = wager;
     }
-
-    public void clearHandValue() {
-        this.handValue = 0;
-    }
-
-    public void addHandValue(int value) {
-        this.handValue += value;
-    }
-
-    public List<Card> getHand() {
-        return this.playerHand;
-    }
-
-    public void clearHand() {
-        this.playerHand.clear();
-    }
-
-    public void doubledDown() {
+    public void doubleWager() {
+        this.wager *= 2;
         this.hasDoubledDown = true;
     }
 
-    public void notDoubledDown() {
-        this.hasDoubledDown = false;
+    public int getWager() {
+        return this.wager;
+    }
+
+    public int getSplitWager() {
+        return this.splitWager;
+    }
+
+    public void addSplitWager(int value) {
+        this.splitWager += value;
+    }
+
+    public void minusSplitWager(int value) {
+        this.splitWager -= value;
+    }
+
+    public void setSplitWager(int value) {
+        this.splitWager = value;
     }
 
     public boolean hasDoubledDown() {
-        return hasDoubledDown;
+        return this.hasDoubledDown;
+    }
+
+    public boolean isEligibleToDoubleDown() {
+        return this.eligibleToDoubleDown;
+    }
+
+    public void notEligibleToDoubleDown() {
+        this.eligibleToDoubleDown = false;
     }
 
     public void playerSplits() {
@@ -73,20 +69,18 @@ public class Player {
         return this.hasSplit;
     }
 
-    public int getHitIteration() {
-        return hitIteration;
-    }
-
-    public void plusHitIteration() {
-        this.hitIteration++;
-    }
-
+    @Override
     public void resetAll() {
-        this.playerHand.clear();
+        this.hand.clear();
         this.handValue = 0;
         this.numberOfAces = 0;
         this.hitIteration = 0;
         this.hasDoubledDown = false;
         this.hasSplit = false;
+        this.eligibleToDoubleDown = true;
+        this.isBusted = false;
+        this.wager = 0;
+        this.splitWager = 0;
     }
+
 }

@@ -1,39 +1,22 @@
 import java.lang.StringBuilder;
+
 public class Gameplay {
 
     private final Deck deckOfCards;
     private final Player player;
-    private final Player dealer;
     private final Player split;
+    private final Dealer dealer;
     private final StringBuilder playerHandString;
-    private int playerBalance, playerWager, updatedWager;
 
 
-    public Gameplay() {
-        this.player = new Player();
-        this.dealer = new Player();
-        this.split = new Player();
+    public Gameplay(Player player, Dealer dealer, Player split) {
+        this.player = player;
+        this.dealer = dealer;
+        this.split = split;
         this.deckOfCards = new Deck();
-        this.playerBalance = 500;
         this.playerHandString = new StringBuilder();
     }
 
-    public void setWager(int wager) {
-        this.playerWager = wager;
-    }
-
-    public int getWager() {
-        return this.playerWager;
-    }
-
-    public void doubleWager() {
-        this.playerWager = this.playerWager * 2;
-        player.doubledDown();
-    }
-
-    public int getBalance() {
-        return this.playerBalance;
-    }
 
     // Creates deck and shuffles cards. Deals two cards each to player and dealer.
     public void dealInitialCards() {
@@ -50,7 +33,9 @@ public class Gameplay {
         showPlayersCards();
     }
 
-    // Method displays player's cards. Uses timer to slow card presentation.
+    /* Method displays player's cards. Uses timer to slow card presentation.
+    StringBuilder playerHandString appends cards to a string after they are revealed.
+    This allows subsequent showings of player's hand to bypass timer. */
     public void showPlayersCards() {
         player.adjustForAces();
         System.out.println("\nYOUR CARDS:");
@@ -71,7 +56,9 @@ public class Gameplay {
         appendPlayerHand();
     }
 
-    // Adds new card to player's hand.
+    /* Method to add new cards to player's hand.
+    Since previously shown cards are appended to a string, we
+    clear the hand to ensure cards aren't displayed twice. */
     public void hitMe() {
         player.clearHand();
         Card newCard = deckOfCards.getCard();
@@ -80,11 +67,13 @@ public class Gameplay {
         showPlayersCards();
     }
 
-    // Checks if player's initial cards constitute blackjack.
+    /* Checks if player's initial cards constitute blackjack.
+    If player achieves blackjack, player's balance is updated,
+    game is reset, and method returns true. */
     public boolean checkBlackjack() {
         if (player.getHandValue() == 21) {
-            playerBalance += (int) (playerWager * 1.5);
-            System.out.println("BLACKJACK! YOU WIN $" + ((int) (playerWager * 1.5)) + "!\n");
+            player.addBalance((int) (player.getWager() * 1.5));
+            System.out.println("BLACKJACK! YOU WIN $" + ((int) (player.getWager() * 1.5)) + "!\n");
             resetGame();
             return true;
         }
@@ -92,32 +81,32 @@ public class Gameplay {
         return false;
     }
 
-    // Checks if player or dealer has busted.
-    // int parameter represents different hands (1 for player, 2 for dealer)
-    public boolean checkIfBusted(int player) {
-        if (player == 1) {
-            if (this.player.getHandValue() > 21) {
-                if (this.player.hasDoubledDown()) {
+    /* Checks if player or dealer has busted.
+    Parameter checks whether hand belong to player or dealer. */
+    public boolean checkIfBusted(Hand hand) {
+        if (hand instanceof Player) {
+            if (player.getHandValue() > 21) {
+                if (player.hasDoubledDown()) {
                     System.out.print("\n");
                 }
                 System.out.println("YOU BUSTED! PLAY AGAIN?\n");
-                playerBalance -= playerWager;
+                player.minusBalance(player.getWager());
                 resetGame();
                 return true;
             }
             return false;
         }
-        if (player == 2) {
-            if (this.player.hasSplit() && dealer.getHandValue() > 21) {
+        if (hand instanceof Dealer) {
+            if (player.hasSplit() && dealer.getHandValue() > 21) {
                 System.out.printf("\nDealer busts with %d! \nYOU WIN $%d!\n\n",
-                        dealer.getHandValue(), updatedWager);
-                playerBalance += updatedWager;
+                        dealer.getHandValue(), player.getSplitWager());
+                player.addBalance(player.getSplitWager());
                 dealer.clearHandValue();
                 return true;
             } else if (dealer.getHandValue() > 21) {
                 System.out.printf("\nDealer busts with %d! \nYOU WIN $%d!\n\n",
-                        dealer.getHandValue(), playerWager);
-                playerBalance += playerWager;
+                        dealer.getHandValue(), player.getWager());
+                player.addBalance(player.getWager());
                 resetGame();
                 return true;
             }
@@ -141,23 +130,24 @@ public class Gameplay {
         System.out.println();
     }
 
-    // Method that begins dealer's final act of revealing cards.
+    /* Method that reveals dealer's cards. dealerHitsOrBusts() is
+    called at the end of method to check condition of dealer's hand. */
     public void dealerReveals() {
-            dealer.adjustForAces();
-            System.out.println("\nDEALER'S HAND:");
-            for (Card card : dealer.getHand()) {
-                delay(700);
-                System.out.println(card);
-            }
+        dealer.adjustForAces();
+        System.out.println("\nDEALER'S HAND:");
+        for (Card card : dealer.getHand()) {
             delay(700);
-            System.out.println("Hand value: " + dealer.getHandValue() + "\n");
-            delay(700);
-            if (!dealerHitsOrBusts() && !player.hasSplit())
-                determineWinner();
+            System.out.println(card);
+        }
+        delay(700);
+        System.out.println("Hand value: " + dealer.getHandValue() + "\n");
+        delay(700);
+        if (!dealerHitsOrBusts() && !player.hasSplit())
+            determineWinner();
     }
 
-    // Instructs dealer to draw cards until 17 is reached or dealer busts.
-    // Returns TRUE if dealer busts.
+    /* Instructs dealer to draw cards until 17 is reached or dealer busts.
+    Returns TRUE if dealer busts. */
     public boolean dealerHitsOrBusts() {
         while (dealer.getHandValue() < 17) {
             Card newCard = deckOfCards.getCard();
@@ -169,7 +159,7 @@ public class Gameplay {
             delay(700);
             System.out.println("Hand value: " + dealer.getHandValue() + "\n");
             delay(700);
-            if (checkIfBusted(2)) {
+            if (checkIfBusted(dealer)) {
                 dealer.clearHandValue();
                 return true;
             }
@@ -192,7 +182,7 @@ public class Gameplay {
                 System.out.println("Hand value: " + dealer.getHandValue() + "\n");
                 delay(500);
                 System.out.println("Sorry! Dealer has blackjack! Try again!\n");
-                playerBalance -= playerWager;
+                player.minusBalance(player.getWager());
                 resetGame();
                 return true;
             } else {
@@ -206,48 +196,47 @@ public class Gameplay {
     public void determineWinner() {
         if (player.getHandValue() > dealer.getHandValue()) {
             System.out.printf("\nYour %d beats dealer's %d\nYOU WIN $%d! PLAY AGAIN?\n\n",
-                    player.getHandValue(), dealer.getHandValue(), playerWager);
-            playerBalance += playerWager;
+                    player.getHandValue(), dealer.getHandValue(), player.getWager());
+            player.addBalance(player.getWager());
             delay(1000);
             resetGame();
         } else if (dealer.getHandValue() > player.getHandValue()) {
             System.out.printf("\nDealer's %d beats your %d\nYOU LOSE $%d! PLAY AGAIN?\n\n",
-                    dealer.getHandValue(), player.getHandValue(), playerWager);
+                    dealer.getHandValue(), player.getHandValue(), player.getWager());
             delay(1000);
-            playerBalance -= playerWager;
+            player.minusBalance(player.getWager());
             resetGame();
         } else {
             System.out.printf("\nDealer's %d equals your %d\nIT'S A PUSH! PLAY AGAIN?\n\n",
                     dealer.getHandValue(), player.getHandValue());
             delay(1000);
-            playerWager = 0;
             resetGame();
         }
     }
 
     // Following methods handle logic of splitting cards into two separate hands and bets.
-    // splitHand returns 21 to UI if player achieves blackjack after hand is completed.
-    public int splitHand(int hand) {
-        if (hand == 1) {
+    // splitHand returns 21 to UI if player achieves blackjack after each hand is completed.
+    public int splitHand(int handNumber) {
+        if (handNumber == 1) {
             player.playerSplits();
-            doubleWager();
-            updatedWager = playerWager;
+            player.doubleWager();
+            player.setSplitWager(player.getWager());
             split.addCard((player.getHand().remove(1)));
             split.addCard(deckOfCards.getCard());
             player.addCard(deckOfCards.getCard());
             printDealing();
             printLoading();
             System.out.println();
-            if (handleSplit(player, "ONE") == 21) {
+            if (handleSplit(player) == 21) {
                 return 21;
             }
         }
-        if (hand == 2) {
-            if (handleSplit(split, "TWO") == 21) {
+        if (handNumber == 2) {
+            if (handleSplit(split) == 21) {
                 return 21;
             }
         }
-        if (hand == 3) {
+        if (handNumber == 3) {
             dealerReveals();
             // If dealer busted, their hand value would be reset.
             // If dealer hasn't busted, player hands will be evaluated.
@@ -262,13 +251,15 @@ public class Gameplay {
     }
 
     // Prints cards of each split hand. Returns 21 if blackjack is achieved.
-    public int handleSplit(Player hand, String count)  {
+    public int handleSplit(Player hand) {
         hand.clearHandValue();
         delay(500);
-        if (count.equals("ONE")) {
+        if (hand == this.player) {
             System.out.println();
+            System.out.println("HAND ONE: ");
+        } else {
+            System.out.println("HAND TWO: ");
         }
-        System.out.println("HAND " + count + ":");
         for (Card card : hand.getHand()) {
             delay(500);
             hand.addHandValue(card.getRank().getValue());
@@ -277,61 +268,41 @@ public class Gameplay {
         delay(500);
         System.out.println("Hand value: " + hand.getHandValue() + "\n");
         if (hand.getHandValue() == 21) {
-            System.out.printf("BLACKJACK! You win $%d! \n\n", (int) ((playerWager / 2) * 1.5));
-            updatedWager += (int) ((playerWager / 2) * 1.5);
+            System.out.printf("BLACKJACK! You win $%d! \n\n", (int) ((player.getWager() / 2) * 1.5));
+            player.addSplitWager((int) ((player.getWager() / 2) * 1.5));
             return 21;
         }
         return -1;
     }
 
-    // Separate helper method for hitting on split hands.
-    // Takes the hand number as a parameter (1 for first hand, 2 for second hand)
-    // Declares subtractBust variable that subtracts value of player's original bet if hand busts.
-    public int hitOnSplit(int hand) {
-        int subtractBust = (playerWager / 2);
-        if (hand == 1) {
-            Card newCard = deckOfCards.getCard();
-            player.addCard(newCard);
-            player.adjustForAces();
-            delay(300);
-            System.out.println("NEW CARD:");
-            delay(700);
-            System.out.println(newCard);
-            delay(700);
-            System.out.println("New hand value: " + player.getHandValue() + "\n");
-            delay(700);
-            if (player.getHandValue() > 21) {
-                System.out.println("BUST! This hand went over 21.\n");
-                updatedWager = updatedWager - subtractBust;
-                playerBalance -= subtractBust;
-                player.clearHandValue();
-                return -1;
-            }
-        }
-        if (hand == 2) {
-            Card newCard = deckOfCards.getCard();
-            split.addCard(newCard);
-            split.adjustForAces();
-            delay(300);
-            System.out.println("NEW CARD:");
-            delay(700);
-            System.out.println(newCard);
-            delay(700);
-            System.out.println("New hand value: " + split.getHandValue() + "\n");
-            delay(700);
-            if (split.getHandValue() > 21) {
-                System.out.println("BUST! This hand went over 21.");
-                updatedWager = updatedWager - subtractBust;
-                playerBalance -= subtractBust;
-                split.clearHandValue();
-                return -1;
-            }
+    /* Separate helper method for hitting on split hands.
+    Takes the player's hand as parameter (player's default hand or split hand)
+    Declares variable that subtracts value of player's original bet if hand busts.
+    Method returns -1 if hand busts, or 1 if hand remains alive. */
+    public int hitOnSplit(Player hand) {
+        int subtractBust = (player.getWager() / 2);
+        Card newCard = deckOfCards.getCard();
+        hand.addCard(newCard);
+        hand.adjustForAces();
+        delay(300);
+        System.out.println("NEW CARD:");
+        delay(700);
+        System.out.println(newCard);
+        delay(700);
+        System.out.println("New hand value: " + hand.getHandValue() + "\n");
+        delay(700);
+        if (hand.getHandValue() > 21) {
+            System.out.println("BUST! This hand went over 21.\n");
+            player.minusSplitWager(subtractBust);
+            player.minusBalance(subtractBust);
+            hand.clearHandValue();
+            return -1;
         }
         return 1;
     }
 
     // Outcome of split hands are determined here.
-    public void evaluateSplit(Player hand, String handCount)  {
+    public void evaluateSplit(Player hand, String handCount) {
         delay(200);
         if (dealerHitsOrBusts()) {
             return;
@@ -339,19 +310,19 @@ public class Gameplay {
         if (hand.getHand().get(0).getRank().getValue() +
                 hand.getHand().get(1).getRank().getValue() == 21) {
             System.out.printf("HAND %s: BLACKJACK! Your hand equals 21 \nYou win $%d!\n",
-                    handCount, (int) (playerWager * 0.75));
-            playerBalance += (int) (playerWager * 0.75);
+                    handCount, (int) (player.getWager() * 0.75));
+            player.addBalance((int) (player.getWager() * 0.75));
         } else if (hand.getHandValue() == 0) {
             System.out.printf("HAND %s: BUST! This hand went over 21 \nYou lose $%d!\n",
-                    handCount, playerWager / 2);
+                    handCount, player.getWager() / 2);
         } else if (hand.getHandValue() > dealer.getHandValue()) {
             System.out.printf("HAND %s: WIN! Your %d beats dealer's %d\nYou win $%d!\n",
-                    handCount, hand.getHandValue(), dealer.getHandValue(), (playerWager / 2));
-            playerBalance += playerWager / 2;
+                    handCount, hand.getHandValue(), dealer.getHandValue(), (player.getWager() / 2));
+            player.addBalance(player.getWager() / 2);
         } else if (hand.getHandValue() < dealer.getHandValue()) {
             System.out.printf("HAND %s: LOSS! Dealer's %d beats your %d\nYou lose $%d!\n",
-                    handCount, dealer.getHandValue(), hand.getHandValue(), (playerWager / 2));
-            playerBalance -= playerWager / 2;
+                    handCount, dealer.getHandValue(), hand.getHandValue(), (player.getWager() / 2));
+            player.minusBalance(player.getWager() / 2);
         } else {
             System.out.printf("Hand %s: PUSH! Dealer's %d equals your %d\nIt's a push!\n",
                     handCount, dealer.getHandValue(), hand.getHandValue());
@@ -367,7 +338,6 @@ public class Gameplay {
         player.resetAll();
         dealer.resetAll();
         split.resetAll();
-        player.notDoubledDown();
         deckOfCards.clearDeck();
         playerHandString.setLength(0);
     }
